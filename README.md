@@ -44,3 +44,34 @@ curl 'http://127.0.0.1:8787/api/episode/one-piece-episode-1179-subtitle-indonesi
 - Semua URL gambar sudah dijadikan absolut.
 - Respons error: `404` untuk slug yang tidak ada, `400` untuk parameter yang
   kurang, `502` kalau situs sumber bermasalah.
+
+## Docker
+
+Image-nya pakai `python:3.12-slim`, tanpa dependency tambahan karena API ini
+hanya memakai pustaka bawaan Python.
+
+```bash
+docker build -t sokuja-api .
+docker run -d --name sokuja-api -p 8787:8787 sokuja-api
+curl 'http://127.0.0.1:8787/api/latest?page=1'
+```
+
+Ganti portnya lewat argumen terakhir `CMD`:
+
+```bash
+docker run -d -p 9000:9000 sokuja-api python sokuja_api.py 9000
+```
+
+Container-nya punya `HEALTHCHECK` yang memanggil `GET /` tiap 30 detik, jadi
+`docker ps` langsung menunjukkan status `healthy` kalau API-nya hidup.
+
+Lewat compose:
+
+```yaml
+services:
+  sokuja-api:
+    build: .
+    ports:
+      - "8787:8787"
+    restart: unless-stopped
+```
